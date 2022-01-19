@@ -36,9 +36,7 @@ public:
     Logo(float x, float y, float angle, int width, int height, Vector bounds):
         position(x, y), velocity(speed * std::cosf(angle), speed * std::sinf(angle)),
         bounds(bounds), width(static_cast<float>(width)), height(static_cast<float>(height))
-    {
-        std::cout << bounds << std::endl;
-    }
+    {}
 
     void update(float dt) {
         Vector newPosition = position + (velocity * dt);
@@ -98,7 +96,18 @@ int run(int width, int height) {
             Severity severity, unsigned int id, int length,
             const char *message, const void *userState
         ) {
-            std::cout << "[OpenGL] " << message << std::endl;
+            switch(type) {
+                case(Type::OTHER): {
+                    break;
+                }
+                case(Type::ERROR): {
+                    std::cerr << "[OpenGL] " << message << std::endl;
+                    break;
+                }
+                default: {
+                    std::cout << "[OpenGL] " << message << std::endl;
+                }
+            }
         }
     );
 #endif

@@ -3,11 +3,8 @@
 
 
 GLuint lwvl::Texture::ID::reserve() {
-    std::cout << "Got here." << std::endl;
     GLuint tempID;
-    std::cout << "Got here." << std::endl;
     glGenTextures(1, &tempID);
-    std::cout << "Got here." << std::endl;
     return tempID;
 }
 
