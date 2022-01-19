@@ -80,11 +80,6 @@ public:
 };
 
 
-void move(Logo& logo, float dt) {
-    logo.update(dt);
-}
-
-
 int run(int width, int height) {
     Window window(width, height, "DVD Standby");
 
@@ -203,7 +198,7 @@ int run(int width, int height) {
             }
         }
 
-        move(logo, dt);
+        logo.update(dt);
 
         // Rendering
         lwvl::clear();
