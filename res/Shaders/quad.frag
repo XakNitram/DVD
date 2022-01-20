@@ -7,5 +7,5 @@ uniform sampler2D tex;
 
 void main() {
     vec4 intex = texture(tex, texCoords);
-    final = vec4(intex.a, intex.a, intex.a, 1.0);
+    final = intex.aaaa;
 }

@@ -592,6 +592,7 @@ namespace lwvl {
         static void clear();
     };
 
+
     class Texture {
         friend Framebuffer;
     public:

@@ -39,6 +39,7 @@ export_resources(
     DEPENDS
     quad.vert
     quad.frag
+    spacetime.frag
 )
 
 export_resources(

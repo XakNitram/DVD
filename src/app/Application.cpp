@@ -25,7 +25,7 @@ std::ostream & operator << (std::ostream &out, Vector const &c) {
 
 class Logo {
 public:
-    static constexpr float speed = 1000.0f;
+    static constexpr float speed = 2000.0f;
     static constexpr float tolerance = 50.0f;
 
     Vector position;
@@ -41,11 +41,16 @@ public:
     void update(float dt) {
         Vector newPosition = position + (velocity * dt);
         float left = newPosition.x + bounds.x;
-        float right = (newPosition.x + width) - bounds.x;
+        float right = bounds.x - (newPosition.x + width);
         float bottom = newPosition.y + bounds.y;
-        float top = (newPosition.y + height) - bounds.y;
+        float top = bounds.y - (newPosition.y + height);
 
-        if (right >= 0.0f) {
+        //std::cout << "left: " << left << std::endl;
+        //std::cout << "right: " << right << std::endl;
+        //std::cout << "bottom: " << bottom << std::endl;
+        //std::cout << "top: " << top << std::endl << std::endl;
+
+        if (right <= 0.0f) {
             newPosition.x = bounds.x - width;
             velocity *= Vector{-1.0f, 1.0f};
         } else if (left <= 0.0f) {
@@ -53,7 +58,7 @@ public:
             velocity *= Vector{-1.0f, 1.0f};
         }
 
-        if (top >= 0.0f) {
+        if (top <= 0.0f) {
             newPosition.y = bounds.y - height;
             velocity *= Vector{1.0f, -1.0f};
         } else if (bottom <= 0.0f) {
@@ -64,13 +69,13 @@ public:
         if ((left <= 0.0f && bottom <= 0.0f) && glm::distance(left, bottom) <= tolerance) {
             //std::cout << "Hit bottom left corner" << std::endl;
             velocity = Vector{0.0f, 0.0f};
-        } else if ((right >= 0.0f && bottom <= 0.0f) && glm::distance(right, bottom) <= tolerance) {
+        } else if ((right <= 0.0f && bottom <= 0.0f) && glm::distance(right, bottom) <= tolerance) {
             //std::cout << "Hit bottom right corner" << std::endl;
             velocity = Vector{0.0f, 0.0f};
-        } else if ((right >= 0.0f && top >= 0.0f) && glm::distance(right, top) <= tolerance) {
+        } else if ((right <= 0.0f && top <= 0.0f) && glm::distance(right, top) <= tolerance) {
             //std::cout << "Hit top right corner" << std::endl;
             velocity = Vector{0.0f, 0.0f};
-        } else if ((left <= 0.0f && top >= 0.0f) && glm::distance(left, top) <= tolerance) {
+        } else if ((left <= 0.0f && top <= 0.0f) && glm::distance(left, top) <= tolerance) {
             //std::cout << "Hit top left corner" << std::endl;
             velocity = Vector{0.0f, 0.0f};
         }
@@ -110,7 +115,7 @@ int run(int width, int height) {
     const auto startTime = high_resolution_clock::now();
     const auto width_f = static_cast<float>(width);
     const auto height_f = static_cast<float>(height);
-    const float aspect = width_f / height_f;
+    //const float aspect = width_f / height_f;
 
     lwvl::VertexArray array;
     lwvl::ArrayBuffer vertexBuffer;
@@ -119,6 +124,7 @@ int run(int width, int height) {
     control.link(
         lwvl::VertexShader::readFile("Data/Shaders/quad.vert"),
         lwvl::FragmentShader::readFile("Data/Shaders/quad.frag")
+        //lwvl::FragmentShader::readFile("Data/Shaders/spacetime.frag")
     );
 
     control.bind();
@@ -128,10 +134,10 @@ int run(int width, int height) {
     );
 
     float vertices[] {
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        1.0f, 1.0f,
+        0.0f, 1.0f
     };
 
     array.bind();
@@ -139,13 +145,14 @@ int run(int width, int height) {
     vertexBuffer.construct(vertices, 8);
     array.attribute(2, GL_FLOAT, 2 * sizeof(float), 0, 0);
 
-
     stbi_set_flip_vertically_on_load(1);
-    int logoWidth, logoHeight, logoBPP;
+    int logoWidth, logoHeight, logoChannels;
     unsigned char* localBuffer = stbi_load(
         "Data/Textures/dvd-logo.png",
-        &logoWidth, &logoHeight, &logoBPP, 4
+        &logoWidth, &logoHeight, &logoChannels, 4
     );
+
+    const float logoAspect = static_cast<float>(logoWidth) / static_cast<float>(logoHeight);
 
     //for (int i = 0; i < (logoWidth * logoHeight) / 4; i++) {
     //    std::cout << "[ ";
@@ -170,18 +177,21 @@ int run(int width, int height) {
 
     control.bind();
     control.uniform("tex").set(static_cast<int>(dvd.slot()));
+    //control.uniform("resolution").set(width_f, height_f);
 
     const auto time_random = static_cast<float>(
         duration_cast<microseconds>(high_resolution_clock::now() - startTime).count()
     );
 
-    Logo logo(0.0f, 0.0f, time_random, logoWidth, logoHeight, Vector{width_f * 0.5f, height_f * 0.5f});
+    int scaledLogoWidth = 20;
+    int scaledLogoHeight = static_cast<int>(static_cast<float>(scaledLogoWidth) / logoAspect);
+    Logo logo(0.0f, 0.0f, time_random, scaledLogoWidth, scaledLogoHeight, Vector{width_f * 0.5f, height_f * 0.5f});
 
     control.bind();
     control.uniform("scale").set(logo.width, logo.height);
 
     auto frameStart = high_resolution_clock::now();
-    while (!window.shouldClose()) {
+    for (size_t i = 0; !window.shouldClose(); i++) {
         const auto dt = static_cast<float>(delta(frameStart));
         frameStart = high_resolution_clock::now();
 
@@ -205,6 +215,7 @@ int run(int width, int height) {
         dvd.bind();
         control.bind();
         control.uniform("offset").set(logo.position.x, logo.position.y);
+        //control.uniform("time").set(static_cast<float>(delta(startTime)));
         array.bind();
         array.drawArrays(lwvl::PrimitiveMode::TriangleFan, 4);
 

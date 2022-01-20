@@ -1,7 +1,6 @@
 #version 460 core
 
 layout(location = 0) in vec4 vertex;
-layout(location = 1) in vec2 coord;
 out vec2 texCoords;
 
 uniform vec2 offset;
@@ -13,7 +12,7 @@ void main() {
     mat4 model = mat4(
         scale.x,  0.0,      0.0, 0.0,
         0.0,      scale.y,  0.0, 0.0,
-        0.0,      0.0,      0.0, 1.0,
+        0.0,      0.0,      1.0, 0.0,
         offset.x, offset.y, 0.0, 1.0
     );
     gl_Position = projection * model * vertex;
